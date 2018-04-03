@@ -2,7 +2,16 @@ import numpy as np
 
 class Player(object):
 	"""
-
+		class that contains data and methods for a player of a strategic game
+		the needed inputs to instantiate a player are:
+		-position: an integer valued player identifier (e.g, 1, 2 ,3)
+		-strategies: a list of the player's strategies (a continuous strategy space can be approximated with a grid of values)
+		-utility_function: a method that accepets two arguments: player_strategy and other_players_strategy_profile and serves 
+						   to compute a player's payoffs from a specific state. The logic for this function is specified by the
+						   user, outside of the Player class. Examples are provides in examples.py
+		methods:
+		-evaluate_payoff: uses the provided utility_function to return a player's payoff (scalar) from a specific strategy profile 
+		-best_response_set: method that returns the best response set (list) against a particular profile from other players
 	"""
 	def __init__(self, position, strategies, utility_function):
 		self.position = position
