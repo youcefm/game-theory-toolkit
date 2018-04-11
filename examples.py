@@ -46,10 +46,21 @@ def profit_fnc(my_quantity, others_quantities, a=a, b=b, c=c, cost_type = 'quadr
 	price = max(0,a- (my_quantity + sum(others_quantities))/b)
 	if cost_type == 'quadratic':
 		return price*my_quantity - c*my_quantity**2 
-	elif: cost_type == 'linear':
+	elif cost_type == 'linear':
 		return price*my_quantity - c*my_quantity
 	else: 
 		return price*my_quantity - c*my_quantity
+
+def cournot_best_response_function(profile, a=a,b=b,c=c, cost_type = 'quadratic'):
+	if cost_type=='quadratic':
+		return (a*b - sum(profile))/(2.0*(1 + c*b))
+	elif cost_type == 'linear':
+		return (b*(a -c) - sum(profile))/2.0
+	else: 
+		return b*(a -c) - sum(profile))/2.0
+
+player = Player(1, np.arange(0,a*b,0.01), profit_fnc, best_response_function)
+print 'Analytic Best response example: ', player.best_response_set([1,5,6,4])
 
 # Create player instances
 players = {}
@@ -76,4 +87,5 @@ while eps> 0.01 and itr < max_itr:
 	print 'new strategy:', q_new
 	q=q_new
 	itr+=1
+
 
