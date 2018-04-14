@@ -57,9 +57,9 @@ def cournot_best_response_function(profile, a=a,b=b,c=c, cost_type = 'quadratic'
 	elif cost_type == 'linear':
 		return (b*(a -c) - sum(profile))/2.0
 	else: 
-		return b*(a -c) - sum(profile))/2.0
+		return (b*(a -c) - sum(profile))/2.0
 
-player = Player(1, np.arange(0,a*b,0.01), profit_fnc, best_response_function)
+player = Player(1, np.arange(0,a*b,0.01), profit_fnc, cournot_best_response_function)
 print 'Analytic Best response example: ', player.best_response_set([1,5,6,4])
 
 # Create player instances
