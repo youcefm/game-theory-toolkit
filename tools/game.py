@@ -1,0 +1,40 @@
+import random
+import numpy as np
+
+class BaseGame(object):
+	"""
+		Shell class to define games
+	"""
+
+	def __init__(self, players=None, convex_numerical_strategy_set=True, precision=0.01, max_iter=100, trim_factor=10):
+		self.players=players
+		self.convex_numerical_strategy_set=convex_numerical_strategy_set
+		self.precision=precision
+		self.max_iter=max_iter
+		self.trim_factor=trim_factor
+
+	def find_fixed_point_of_bestresponse_mapping(self, seed):
+		profile = seed
+		delta = 1.0/self.precision
+		itr = 0
+		N = len(self.players) # number of players
+
+		while  delta > self.precision and itr < self.max_iter:
+			new_profile = []
+			for player in self.players:
+				br = random.choice(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose one in the set
+				if self.convex_numerical_strategy_set:
+					new_strategy = (1.0*(N-2)*profile[player-1] + 1.0*(br))/(N-1) 						 # works for strategies defined on the real line
+				else:
+					new_strategy = br 																		 # need to think about this more
+				new_profile.append(new_strategy)
+
+			delta = sum((np.array(new_profile) - np.array(profile))**2)**0.5
+			itr+=1
+ 			profile=list(new_profile)
+ 		if itr == self.max_iter:
+ 			print 'WARNING: Reached max number of iterations, with a delta of {x} times above precision'.format(x=delta/self.precision)
+ 		self.fixed_point = new_profile
+
+if __name__ == '__main__':
+	main()
