@@ -3,6 +3,7 @@ from itertools import product
 import random
 import numpy as np
 from tools.player import Player
+from tools.game import BaseGame
 
 ### Compute best response against a fixed profile for public goods utility function:
 param=6
@@ -64,7 +65,7 @@ print 'Analytic Best response example: ', player.best_response_set([1,5,6,4])
 
 # Create player instances
 players = {}
-N = 2
+N = 3
 for n in range(1, N+1):
 	players[n] = Player(n, np.arange(0,a*b,0.01), profit_fnc)
 
@@ -74,18 +75,24 @@ for n in range(1, N+1):
 print 'Analytic Solution for Linear Cost (N={N}):'.format(N=N), 1.0*(a-c)*b/(N+1)
 print 'Analytic Solution for Quadratic Cost (N={N})'.format(N=N), 1.0*a*b/(N+1+2*c*b)
 
+cournot_game = BaseGame()
+cournot_game.players=players
+cournot_game.find_fixed_point_of_bestresponse_mapping(seed=np.random.randint(0, a*b, N))
+print 'Equilibrium is: ', cournot_game.fixed_point
+
 # Game Theory Toolkit solution using iterated best response idea
-q= np.random.randint(0, a*b, 1)
-eps = 100
-itr = 0
-max_itr = 20
-while eps> 0.01 and itr < max_itr:
-	q_new = np.mean(players[1].best_response_set([np.mean(players[2].best_response_set([q]))]))
-	eps = abs(q_new-q)
-	print 'iteration:', itr
-	print 'previous strategy:', q
-	print 'new strategy:', q_new
-	q=q_new
-	itr+=1
+# q= np.random.randint(0, a*b, 1)
+# eps = 100
+# itr = 0
+# max_itr = 20
+# while eps> 0.01 and itr < max_itr:
+# 	q_new = np.mean(players[1].best_response_set([np.mean(players[2].best_response_set([q]))]))
+# 	eps = abs(q_new-q)
+# 	print 'iteration:', itr
+# 	print 'previous strategy:', q
+# 	print 'new strategy:', q_new
+# 	q=q_new
+# 	itr+=1
+
 
 
