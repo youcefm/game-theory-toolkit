@@ -13,7 +13,7 @@ class BaseGame(object):
 		self.max_iter=max_iter
 		self.trim_factor=trim_factor
 
-	def find_fixed_point_of_bestresponse_mapping(self, seed):
+	def find_fixed_point_of_bestresponse_mapping(self, seed, point_selection_type='random'):
 		profile = seed
 		delta = 1.0/self.precision
 		itr = 0
@@ -22,7 +22,14 @@ class BaseGame(object):
 		while  delta > self.precision and itr < self.max_iter:
 			new_profile = []
 			for player in self.players:
-				br = random.choice(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose one in the set
+				if point_selection_type=='random':
+					br = random.choice(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose one in the set
+				elif point_selection_type=='min':
+					br = np.min(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose minimum of the set
+				elif point_selection_type=='max':
+					br = np.max(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose maximum of the set
+				elif point_selection_type=='mean':
+					br = np.mean(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose mean of the set
 				if self.convex_numerical_strategy_set:
 					new_strategy = (1.0*(N-2)*profile[player-1] + 1.0*(br))/(N-1) 						 # works for strategies defined on the real line
 				else:
