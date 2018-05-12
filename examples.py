@@ -16,7 +16,7 @@ def quadratic_utility(strategy, profile, param=param):
 profile = [0,1,2,3]
 print 'Analytic Best Response:', max(0,(param*0.5)**2 - sum(np.array(profile)))
 
-ready_player_one = Player(1, np.arange(0,20, 0.1), utility_function=quadratic_utility)
+ready_player_one = Player(1, np.arange(0,20, 0.1), payoff_function=quadratic_utility)
 
 print ready_player_one.best_response_set(profile)
 
@@ -35,7 +35,7 @@ def matching_penny_utility(strategy, profile):
 	else:
 		return - heads_count
 
-ready_player_two = Player(2, ['H', 'T'], utility_function=matching_penny_utility)
+ready_player_two = Player(2, ['H', 'T'], payoff_function=matching_penny_utility)
 
 print ready_player_two.best_response_set(['H', 'H', 'H', 'H', 'H', 'T', 'T', 'T'])
 
