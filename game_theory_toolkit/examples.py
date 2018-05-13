@@ -2,8 +2,8 @@
 from itertools import product
 import random
 import numpy as np
-from tools.player import Player
-from tools.game import StrategicGame
+from player import Player
+from game import StrategicGame
 
 ### Compute best response against a fixed profile for public goods utility function:
 param=6
@@ -54,11 +54,11 @@ def profit_fnc(my_quantity, others_quantities, a=a, b=b, c=c, cost_type = 'quadr
 
 def cournot_best_response_function(profile, a=a,b=b,c=c, cost_type = 'quadratic'):
 	if cost_type=='quadratic':
-		return (a*b - sum(profile))/(2.0*(1 + c*b))
+		return [(a*b - sum(profile))/(2.0*(1 + c*b))]
 	elif cost_type == 'linear':
-		return (b*(a -c) - sum(profile))/2.0
+		return [(b*(a -c) - sum(profile))/2.0]
 	else: 
-		return (b*(a -c) - sum(profile))/2.0
+		return [(b*(a -c) - sum(profile))/2.0]
 
 player = Player(1, np.arange(0,a*b,0.01), profit_fnc, cournot_best_response_function)
 print 'Analytic Best response example: ', player.best_response_set([1,5,6,4])
@@ -77,8 +77,12 @@ print 'Analytic Solution for Quadratic Cost (N={N})'.format(N=N), 1.0*a*b/(N+1+2
 
 cournot_game = StrategicGame()
 cournot_game.players=players
-cournot_game.fixed_point_of_bestresponse_mapping(seed=np.random.randint(0, a*b, N))
+seed = np.random.randint(0, a*b, N)
+cournot_game.fixed_point_of_bestresponse_mapping(seed=seed)
 print 'Equilibrium is: ', cournot_game.fixed_point
+
+#res = cournot_game.nash_equilibria(seed)
+#print 'Using Minimization problem: ', res.x
 
 # Game Theory Toolkit solution using iterated best response idea
 # q= np.random.randint(0, a*b, 1)

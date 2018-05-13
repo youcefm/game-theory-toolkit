@@ -20,6 +20,7 @@ class StrategicGame(object):
 		delta = 1.0/self.precision
 		itr = 0
 		N = len(self.players) # number of players
+		step = np.log2(N)
 
 		while  delta > self.precision and itr < self.max_iter:
 			new_profile = []
@@ -33,7 +34,7 @@ class StrategicGame(object):
 				elif point_selection_type=='mean':
 					br = np.mean(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose mean of the set
 				if self.convex_numerical_strategy_set:
-					new_strategy = (1.0*(N-2)*profile[player-1] + 1.0*(br))/(N-1) 						 # works for strategies defined on the real line
+					new_strategy = ((step-1)*profile[player-1] + 1.0*(br))/step 						 # works for strategies defined on the real line
 				else:
 					new_strategy = br 																		 # need to think about this more
 				new_profile.append(new_strategy)
