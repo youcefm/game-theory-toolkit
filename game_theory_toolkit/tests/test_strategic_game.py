@@ -1,5 +1,6 @@
 import numpy as np
-from tools.game import StrategicGame
+from game_theory_toolkit.game import StrategicGame
+from player import Player
 
 players ={1: Player(1, [1,2,3], lambda x: x), 2: Player(1, [1,2,3], lambda x: x)}
 
