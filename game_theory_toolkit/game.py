@@ -39,8 +39,10 @@ class StrategicGame(object):
 					new_strategy = br 																		 # need to think about this more
 				new_profile.append(new_strategy)
 
-
-			delta = sum((np.array(new_profile) - np.array(profile))**2)**0.5
+			if self.convex_numerical_strategy_set:
+				delta = sum((np.array(new_profile) - np.array(profile))**2)**0.5
+			else:
+				delta = 100*sum(np.array(new_profile) != np.array(profile))
 			itr+=1
  			profile=list(new_profile)
  		if itr == self.max_iter:
