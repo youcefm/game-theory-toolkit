@@ -3,7 +3,7 @@ from itertools import product
 import random
 import numpy as np
 from tools.player import Player
-from tools.game import BaseGame
+from tools.game import StrategicGame
 
 ### Compute best response against a fixed profile for public goods utility function:
 param=6
@@ -75,9 +75,9 @@ for n in range(1, N+1):
 print 'Analytic Solution for Linear Cost (N={N}):'.format(N=N), 1.0*(a-c)*b/(N+1)
 print 'Analytic Solution for Quadratic Cost (N={N})'.format(N=N), 1.0*a*b/(N+1+2*c*b)
 
-cournot_game = BaseGame()
+cournot_game = StrategicGame()
 cournot_game.players=players
-cournot_game.find_fixed_point_of_bestresponse_mapping(seed=np.random.randint(0, a*b, N))
+cournot_game.fixed_point_of_bestresponse_mapping(seed=np.random.randint(0, a*b, N))
 print 'Equilibrium is: ', cournot_game.fixed_point
 
 # Game Theory Toolkit solution using iterated best response idea
