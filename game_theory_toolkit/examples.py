@@ -2,8 +2,8 @@
 from itertools import product
 import random
 import numpy as np
-from tools.player import Player
-from tools.game import BaseGame
+from player import Player
+from game import StrategicGame
 
 ### Compute best response against a fixed profile for public goods utility function:
 param=6
@@ -31,13 +31,17 @@ def matching_penny_utility(strategy, profile):
 			tails_count+=1
 	heads_payoff = heads_count - tails_count
 	if strategy == 'H':
-		return heads_count
+		return heads_payoff
 	else:
-		return - heads_count
+		return - heads_payoff
 
 ready_player_two = Player(2, ['H', 'T'], payoff_function=matching_penny_utility)
 
 print ready_player_two.best_response_set(['H', 'H', 'H', 'H', 'H', 'T', 'T', 'T'])
+
+g = StrategicGame({1: ready_player_two, 2:ready_player_two, 3:ready_player_two, 4: ready_player_two}, False)
+g.fixed_point_of_bestresponse_mapping(['H', 'T', 'T', 'H'])
+print 'matching Pennies Try: ', g.fixed_point
 
 ### Define and solve a 2 player Cournot oligopoly game
 
@@ -54,11 +58,11 @@ def profit_fnc(my_quantity, others_quantities, a=a, b=b, c=c, cost_type = 'quadr
 
 def cournot_best_response_function(profile, a=a,b=b,c=c, cost_type = 'quadratic'):
 	if cost_type=='quadratic':
-		return (a*b - sum(profile))/(2.0*(1 + c*b))
+		return [(a*b - sum(profile))/(2.0*(1 + c*b))]
 	elif cost_type == 'linear':
-		return (b*(a -c) - sum(profile))/2.0
+		return [(b*(a -c) - sum(profile))/2.0]
 	else: 
-		return (b*(a -c) - sum(profile))/2.0
+		return [(b*(a -c) - sum(profile))/2.0]
 
 player = Player(1, np.arange(0,a*b,0.01), profit_fnc, cournot_best_response_function)
 print 'Analytic Best response example: ', player.best_response_set([1,5,6,4])
@@ -75,24 +79,12 @@ for n in range(1, N+1):
 print 'Analytic Solution for Linear Cost (N={N}):'.format(N=N), 1.0*(a-c)*b/(N+1)
 print 'Analytic Solution for Quadratic Cost (N={N})'.format(N=N), 1.0*a*b/(N+1+2*c*b)
 
-cournot_game = BaseGame()
+cournot_game = StrategicGame()
 cournot_game.players=players
-cournot_game.find_fixed_point_of_bestresponse_mapping(seed=np.random.randint(0, a*b, N))
+seed = np.random.randint(0, a*b, N)
+cournot_game.fixed_point_of_bestresponse_mapping(seed=seed)
 print 'Equilibrium is: ', cournot_game.fixed_point
 
-# Game Theory Toolkit solution using iterated best response idea
-# q= np.random.randint(0, a*b, 1)
-# eps = 100
-# itr = 0
-# max_itr = 20
-# while eps> 0.01 and itr < max_itr:
-# 	q_new = np.mean(players[1].best_response_set([np.mean(players[2].best_response_set([q]))]))
-# 	eps = abs(q_new-q)
-# 	print 'iteration:', itr
-# 	print 'previous strategy:', q
-# 	print 'new strategy:', q_new
-# 	q=q_new
-# 	itr+=1
 
 
 
