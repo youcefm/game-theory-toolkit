@@ -40,9 +40,18 @@ class StrategicGame(object):
 				new_profile.append(new_strategy)
 
 			if self.convex_numerical_strategy_set:
-				delta = sum((np.array(new_profile) - np.array(profile))**2)**0.5
+				new_delta = sum((np.array(new_profile) - np.array(profile))**2)**0.5
 			else:
-				delta = 100*sum(np.array(new_profile) != np.array(profile))
+				new_delta = 100*sum(np.array(new_profile) != np.array(profile))
+			print 'Current Delta: ', new_delta
+
+			if new_delta - delta >= -0.5*self.precision: # perturbe strategies if optimization gets stuck
+				print "---- Add preturbation to unstuck convergence ----"
+				if self.convex_numerical_strategy_set:
+					new_profile = (np.ones(len(new_profile)) + np.random.normal(0, 0.05, len(new_profile)))*np.array(new_profile)
+				else:
+					new_profile = [random.choice(self.players[player].strategies) for player in self.players]
+			delta = new_delta
 			itr+=1
  			profile=list(new_profile)
  		if itr == self.max_iter:
@@ -50,9 +59,21 @@ class StrategicGame(object):
  		self.fixed_point = new_profile
 
  	def contingencies(self):
- 		return product(*[self.players[player].strategies for player in self.players])
+ 		p = product(*[self.players[player].strategies for player in self.players])
+ 		contingencies = []
+ 		for el in p:
+ 			contingencies.append(el)
+ 		return contingencies
 
+ 	def UniformlyRandomStrategy(self):
+ 		p = product(*[1.0/len(self.players[player].strategies)*np.ones(len(self.players[player].strategies)) for player in self.players])
+ 		l = []
+ 		for el in p:
+ 			l.append(el)
+ 		return l
 
+ 	def MixedStrategyProfile(self, mixed_strategies):
+ 		return
 
 
  	def liapunov_value(self, profile):
