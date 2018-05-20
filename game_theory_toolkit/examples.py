@@ -31,13 +31,17 @@ def matching_penny_utility(strategy, profile):
 			tails_count+=1
 	heads_payoff = heads_count - tails_count
 	if strategy == 'H':
-		return heads_count
+		return heads_payoff
 	else:
-		return - heads_count
+		return - heads_payoff
 
 ready_player_two = Player(2, ['H', 'T'], payoff_function=matching_penny_utility)
 
 print ready_player_two.best_response_set(['H', 'H', 'H', 'H', 'H', 'T', 'T', 'T'])
+
+g = StrategicGame({1: ready_player_two, 2:ready_player_two, 3:ready_player_two, 4: ready_player_two}, False)
+g.fixed_point_of_bestresponse_mapping(['H', 'T', 'T', 'H'])
+print 'matching Pennies Try: ', g.fixed_point
 
 ### Define and solve a 2 player Cournot oligopoly game
 
@@ -81,22 +85,6 @@ seed = np.random.randint(0, a*b, N)
 cournot_game.fixed_point_of_bestresponse_mapping(seed=seed)
 print 'Equilibrium is: ', cournot_game.fixed_point
 
-#res = cournot_game.nash_equilibria(seed)
-#print 'Using Minimization problem: ', res.x
-
-# Game Theory Toolkit solution using iterated best response idea
-# q= np.random.randint(0, a*b, 1)
-# eps = 100
-# itr = 0
-# max_itr = 20
-# while eps> 0.01 and itr < max_itr:
-# 	q_new = np.mean(players[1].best_response_set([np.mean(players[2].best_response_set([q]))]))
-# 	eps = abs(q_new-q)
-# 	print 'iteration:', itr
-# 	print 'previous strategy:', q
-# 	print 'new strategy:', q_new
-# 	q=q_new
-# 	itr+=1
 
 
 
