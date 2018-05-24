@@ -8,9 +8,9 @@ class StrategicGame(object):
 		class to model and analyze games in strategic form
 	"""
 
-	def __init__(self, players={}, convex_numerical_strategy_set=True, precision=0.01, max_iter=100, trim_factor=10):
+	def __init__(self, players={}, convex_numerical_action_set=True, precision=0.01, max_iter=100, trim_factor=10):
 		self.players=players
-		self.convex_numerical_strategy_set=convex_numerical_strategy_set
+		self.convex_numerical_action_set=convex_numerical_action_set
 		self.precision=precision
 		self.max_iter=max_iter
 		self.trim_factor=trim_factor
@@ -33,13 +33,13 @@ class StrategicGame(object):
 					br = np.max(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose maximum of the set
 				elif point_selection_type=='mean':
 					br = np.mean(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose mean of the set
-				if self.convex_numerical_strategy_set:
-					new_strategy = ((step-1)*profile[player-1] + 1.0*(br))/step 						 # works for strategies defined on the real line
+				if self.convex_numerical_action_set:
+					new_strategy = ((step-1)*profile[player-1] + 1.0*(br))/step 						 # works for actions defined on the real line
 				else:
 					new_strategy = br 																		 # need to think about this more
 				new_profile.append(new_strategy)
 
-			if self.convex_numerical_strategy_set:
+			if self.convex_numerical_action_set:
 				new_delta = sum((np.array(new_profile) - np.array(profile))**2)**0.5
 			else:
 				new_delta = 100*sum(np.array(new_profile) != np.array(profile))
@@ -47,10 +47,10 @@ class StrategicGame(object):
 
 			if new_delta - delta >= -0.5*self.precision: # perturbe strategies if optimization gets stuck
 				print "---- Add preturbation to unstuck convergence ----"
-				if self.convex_numerical_strategy_set:
-					new_profile = (np.ones(len(new_profile)) + np.random.normal(0, 0.05, len(new_profile)))*np.array(new_profile)
+				if self.convex_numerical_action_set:
+					new_profile = (np.ones(len(new_profile)) + np.random.normal(0, 0.1, len(new_profile)))*np.array(new_profile)
 				else:
-					new_profile = [random.choice(self.players[player].strategies) for player in self.players]
+					new_profile = [random.choice(self.players[player].action_set) for player in self.players]
 			delta = new_delta
 			itr+=1
  			profile=list(new_profile)
@@ -59,14 +59,14 @@ class StrategicGame(object):
  		self.fixed_point = new_profile
 
  	def contingencies(self):
- 		p = product(*[self.players[player].strategies for player in self.players])
+ 		p = product(*[self.players[player].action_set for player in self.players])
  		contingencies = []
  		for el in p:
  			contingencies.append(el)
  		return contingencies
 
  	def UniformlyRandomStrategy(self):
- 		p = product(*[1.0/len(self.players[player].strategies)*np.ones(len(self.players[player].strategies)) for player in self.players])
+ 		p = product(*[1.0/len(self.players[player].action_set)*np.ones(len(self.players[player].action_set)) for player in self.players])
  		l = []
  		for el in p:
  			l.append(el)
@@ -82,7 +82,7 @@ class StrategicGame(object):
  			g_player = 0
  			position = self.players[player].position -1
  			m_profile =  self.players[player].evaluate_payoff(profile[position], np.delete(profile, position))
- 			for strategy in self.players[player].strategies:
+ 			for strategy in self.players[player].action_set:
  				m_strategy = self.players[player].evaluate_payoff(strategy, np.delete(profile, position))
  				g_player += max((m_strategy- m_profile)**2, 0)
  			v_profile += g_player
@@ -103,9 +103,9 @@ class EvolutionaryGame(object):
 
 	def compute_current_fitness(self):
 		expected_payoffs = []
-		for strategy1 in self.player.strategies:
+		for strategy1 in self.player.action_set:
 			expected_payoff = 0
-			for index, strategy2 in enumerate(self.player.strategies):
+			for index, strategy2 in enumerate(self.player.action_set):
 				v = self.player.evaluate_payoff(strategy1, [strategy2])
 				expected_payoff += v*self.current_population_distribution[index]
 			expected_payoffs.append(expected_payoff)
@@ -132,16 +132,16 @@ class TwoPlayerEvolutionaryGame(object):
 
 	def compute_current_fitness(self):
 		expected_payoffs = {1: [], 2: []} 
-		for strategy1 in self.player1.strategies:
+		for strategy1 in self.player1.action_set:
 			expected_payoff = 0
-			for index, strategy2 in enumerate(self.player2.strategies):
+			for index, strategy2 in enumerate(self.player2.action_set):
 				v = self.player1.evaluate_payoff(strategy1, [strategy2])
 				expected_payoff += v*self.current_population_distributions[2][index]
 			expected_payoffs[1].append(expected_payoff)
 
-		for strategy2 in self.player2.strategies:
+		for strategy2 in self.player2.action_set:
 			expected_payoff = 0
-			for index, strategy1 in enumerate(self.player1.strategies):
+			for index, strategy1 in enumerate(self.player1.action_set):
 				v = self.player2.evaluate_payoff(strategy2, [strategy1])
 				expected_payoff += v*self.current_population_distributions[1][index]
 			expected_payoffs[2].append(expected_payoff)
