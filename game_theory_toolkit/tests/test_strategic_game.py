@@ -39,7 +39,7 @@ def matching_penny_utility(strategy, profile, level = 10):
 		return - heads_payoff + level
 
 eg = TwoPlayerEvolutionaryGame(Player(1, ['H', 'T'], matching_penny_utility),
-	Player(1, ['H', 'T'], matching_penny_utility), {1: [0.25, 0.75], 2: [0.25, 0.75]})
+	Player(1, ['H', 'T'], matching_penny_utility), {1: [0.25, 0.75], 2: [0.75, 0.25]})
 eg.compute_current_fitness()
 print 'Current Fitness: ', eg.current_fitness
 print 'Intial Population: ', eg.current_population_distributions
