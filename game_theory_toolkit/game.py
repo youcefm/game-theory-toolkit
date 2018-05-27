@@ -2,13 +2,14 @@ import random
 import numpy as np
 from itertools import product
 from scipy.optimize import minimize
+from player import *
 
 class StrategicGame(object):
 	"""
 		class to model and analyze games in strategic form
 	"""
 
-	def __init__(self, players={}, convex_numerical_action_set=True, precision=0.01, max_iter=100, trim_factor=10):
+	def __init__(self, players=PlayerSet(), convex_numerical_action_set=True, precision=0.01, max_iter=100, trim_factor=10):
 		self.players=players
 		self.convex_numerical_action_set=convex_numerical_action_set
 		self.precision=precision
@@ -64,16 +65,6 @@ class StrategicGame(object):
  		for el in p:
  			contingencies.append(el)
  		return contingencies
-
- 	def UniformlyRandomStrategy(self):
- 		p = product(*[1.0/len(self.players[player].action_set)*np.ones(len(self.players[player].action_set)) for player in self.players])
- 		l = []
- 		for el in p:
- 			l.append(el)
- 		return l
-
- 	def MixedStrategyProfile(self, mixed_strategies):
- 		return
 
 
  	def liapunov_value(self, profile):

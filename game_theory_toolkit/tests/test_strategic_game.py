@@ -9,7 +9,7 @@ sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
 from game import StrategicGame, TwoPlayerEvolutionaryGame, EvolutionaryGame
-from player import Player
+from player import Player, PlayerSet
 
 s = [1,2,3]
 p =[1.0/3, 1.0/3, 1.0/3]
@@ -51,3 +51,15 @@ neg = EvolutionaryGame(Player(1, ['H', 'T'], matching_penny_utility), [0.25, 0.7
 print 'Intial Population: ', neg.current_population_distribution
 neg.replicator_dynamics_step()
 print 'New Population: ', neg.current_population_distribution
+
+p = PlayerSet()
+
+def p_f(x, y):
+	return 4*(x+y)**0.5 - x
+
+p.add(Player('Al', range(40), p_f))
+p.add(Player('So', range(40), p_f))
+
+print p.compute_action_profiles().compute_profile_distribution().expected_payoff(0)
+print p.action_profiles
+print p.profile_distribution
