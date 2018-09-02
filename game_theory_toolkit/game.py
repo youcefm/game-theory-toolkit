@@ -2,15 +2,17 @@ import random
 import numpy as np
 from itertools import product
 from scipy.optimize import minimize
+from player import *
 
 class StrategicGame(object):
 	"""
 		class to model and analyze games in strategic form
 	"""
 
-	def __init__(self, players={}, convex_numerical_action_set=True, precision=0.01, max_iter=100, trim_factor=10):
+	def __init__(self, players=PlayerSet(), convex_numerical_action_set=True, shrink=True, precision=0.0001, max_iter=100, trim_factor=10):
 		self.players=players
 		self.convex_numerical_action_set=convex_numerical_action_set
+		self.shrink=shrink
 		self.precision=precision
 		self.max_iter=max_iter
 		self.trim_factor=trim_factor
@@ -26,15 +28,15 @@ class StrategicGame(object):
 			new_profile = []
 			for player in self.players:
 				if point_selection_type=='random':
-					br = random.choice(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose one in the set
+					br = random.choice(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player]).current_best_response) # choose one in the set
 				elif point_selection_type=='min':
-					br = np.min(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose minimum of the set
+					br = np.min(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player]).current_best_response) # choose minimum of the set
 				elif point_selection_type=='max':
-					br = np.max(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose maximum of the set
+					br = np.max(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player]).current_best_response) # choose maximum of the set
 				elif point_selection_type=='mean':
-					br = np.mean(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player-1])) # choose mean of the set
-				if self.convex_numerical_action_set:
-					new_strategy = ((step-1)*profile[player-1] + 1.0*(br))/step 						 # works for actions defined on the real line
+					br = np.mean(self.players[player].best_response_set([x for i,x in enumerate(profile) if i!=player]).current_best_response) # choose mean of the set
+				if self.convex_numerical_action_set&self.shrink:
+					new_strategy = ((step-1)*profile[player] + 1.0*(br))/step 						 # works for actions defined on the real line
 				else:
 					new_strategy = br 																		 # need to think about this more
 				new_profile.append(new_strategy)
@@ -44,6 +46,7 @@ class StrategicGame(object):
 			else:
 				new_delta = 100*sum(np.array(new_profile) != np.array(profile))
 			print 'Current Delta: ', new_delta
+			print 'Current Profile: ', new_profile
 
 			if new_delta - delta >= -0.5*self.precision: # perturbe strategies if optimization gets stuck
 				print "---- Add preturbation to unstuck convergence ----"
@@ -58,22 +61,7 @@ class StrategicGame(object):
  			print 'WARNING: Reached max number of iterations, with a delta of {x} times above precision'.format(x=delta/self.precision)
  		self.fixed_point = new_profile
 
- 	def contingencies(self):
- 		p = product(*[self.players[player].action_set for player in self.players])
- 		contingencies = []
- 		for el in p:
- 			contingencies.append(el)
- 		return contingencies
-
- 	def UniformlyRandomStrategy(self):
- 		p = product(*[1.0/len(self.players[player].action_set)*np.ones(len(self.players[player].action_set)) for player in self.players])
- 		l = []
- 		for el in p:
- 			l.append(el)
- 		return l
-
- 	def MixedStrategyProfile(self, mixed_strategies):
- 		return
+ 		return self
 
 
  	def liapunov_value(self, profile):
@@ -96,10 +84,11 @@ class EvolutionaryGame(object):
 	"""
  		class to model and analyze evolutionary games when interactions are within a single population
  	"""
-	def __init__(self, player, initial_population_distribution = []):
+	def __init__(self, player, initial_population_distribution = [], precision = 0.001):
 		self.player = player
 		self.initial_population_distribution = initial_population_distribution
 		self.current_population_distribution = initial_population_distribution
+		self.precision = precision
 
 	def compute_current_fitness(self):
 		expected_payoffs = []
@@ -111,24 +100,48 @@ class EvolutionaryGame(object):
 			expected_payoffs.append(expected_payoff)
 
 		self.current_fitness = expected_payoffs
+		return self
 
 	def replicator_dynamics_step(self):
 		self.compute_current_fitness()
 		avg_fitness = sum(np.array(self.current_fitness)*np.array(self.current_population_distribution))
 		population_change = np.array(self.current_population_distribution)*(np.array(self.current_fitness) - avg_fitness)
-		new_population_distribution = self.current_population_distribution + population_change
+		new_population_distribution = np.minimum(
+										np.maximum(self.current_population_distribution + population_change, 
+													np.zeros(len(population_change))),
+										np.ones(len(population_change)))
 		self.current_population_distribution = new_population_distribution
+		return self
 
+	def find_ess(self):
+		delta = 1.0/self.precision
+		while delta > self.precision:
+			delta = sum((np.array(self.current_population_distribution) - np.array(self.replicator_dynamics_step().current_population_distribution))**2)**0.5
+			print 'current delta: ', delta
+			print 'current distribution: ', self.current_population_distribution
+		self.ess = self.current_population_distribution
+		return self
+
+class NPlayerEvolutionaryGame(EvolutionaryGame):
+
+	def __init__(self, players=PlayerSet(), initial_population_distributions = {}, precision=0.001):
+		self.players = players
+		self.initial_population_distributions = initial_population_distributions
+		self.current_population_distributions = initial_population_distributions
+
+	def iter_replicator_dynamics_step(self):
+		pass 
 
 class TwoPlayerEvolutionaryGame(object):
  	"""
  		class to model and analyze evolutionary games when interactions are between two distinct populations
  	"""
-	def __init__(self, player1, player2, initial_population_distributions = {}):
+	def __init__(self, player1, player2, initial_population_distributions = {}, precision=0.001):
 		self.player1 = player1
 		self.player2 = player2
 		self.initial_population_distributions = initial_population_distributions
 		self.current_population_distributions = initial_population_distributions
+		self.precision = precision
 
 	def compute_current_fitness(self):
 		expected_payoffs = {1: [], 2: []} 
@@ -146,6 +159,7 @@ class TwoPlayerEvolutionaryGame(object):
 				expected_payoff += v*self.current_population_distributions[1][index]
 			expected_payoffs[2].append(expected_payoff)
 		self.current_fitness = expected_payoffs
+		return self
 
 	def replicator_dynamics_step(self):
 		self.compute_current_fitness()
@@ -153,9 +167,32 @@ class TwoPlayerEvolutionaryGame(object):
 		2: sum(np.array(self.current_fitness[2])*np.array(self.current_population_distributions[2]))}
 		population_change = {1: np.array(self.current_population_distributions[1])*(np.array(self.current_fitness[1]) - avg_fitness[1]),
 		2: np.array(self.current_population_distributions[2])*(np.array(self.current_fitness[2]) - avg_fitness[2])}
-		new_population_distributions = {1: self.current_population_distributions[1] + population_change[1],
-		2: self.current_population_distributions[2] + population_change[2]}
+		new_population_distributions = {}
+		new_population_distributions[1] = np.minimum(
+										np.maximum(self.current_population_distributions[1] + population_change[1], 
+													np.zeros(len(population_change[1]))),
+										np.ones(len(population_change[1])))
+		new_population_distributions[2] = np.minimum(
+										np.maximum(self.current_population_distributions[2] + population_change[2], 
+													np.zeros(len(population_change[2]))),
+										np.ones(len(population_change[1])))
+
 		self.current_population_distributions = new_population_distributions
+
+		return self
+
+	def find_ess(self):
+		delta = 1.0/self.precision
+		while delta > self.precision:
+			current_population_distributions = self.current_population_distributions
+			new_population_distributions = self.replicator_dynamics_step().current_population_distributions
+			delta1 = sum((np.array(current_population_distributions[1]) - np.array(new_population_distributions[1]))**2)**0.5
+			delta2 = sum((np.array(current_population_distributions[2]) - np.array(new_population_distributions[2]))**2)**0.5
+			delta = (delta1+delta2)/2.0
+			print 'current delta: ', delta
+			print 'current distribution: ', new_population_distributions
+		self.ess = self.current_population_distributions
+		return self
 
 
 if __name__ == '__main__':

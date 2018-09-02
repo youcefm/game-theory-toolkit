@@ -2,7 +2,7 @@
 from itertools import product
 import random
 import numpy as np
-from player import Player
+from player import Player, PlayerSet
 from game import StrategicGame
 
 ### Compute best response against a fixed profile for public goods utility function:
@@ -19,6 +19,13 @@ print 'Analytic Best Response:', max(0,(param*0.5)**2 - sum(np.array(profile)))
 ready_player_one = Player(1, np.arange(0,20, 0.1), payoff_function=quadratic_utility)
 
 print ready_player_one.best_response_set(profile)
+
+### PlayerSet
+ps = PlayerSet()
+ps.add(player=Player('Al', ['A', 'B', 'C'], lambda x: x))
+ps.add(**{'name': 'Yo', 'action_set': ['A', 'B', 'C', 'D'], 'payoff_function': lambda x: x})
+ps.compute_action_profiles()
+print 'Action Profiles: ', ps.action_profiles
 
 ### Define general matching pennies utility function and compute best response against fixed profile:
 
@@ -70,7 +77,7 @@ print 'Analytic Best response example: ', player.best_response_set([1,5,6,4])
 # Create player instances
 players = {}
 N = 3
-for n in range(1, N+1):
+for n in range(0, N):
 	players[n] = Player(n, np.arange(0,a*b,0.01), profit_fnc)
 
 # Analytic solution (symmetric), for comparison
