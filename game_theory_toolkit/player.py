@@ -43,22 +43,20 @@ class Player(object):
 		self.mixed_strategy = (1.0/len(action_set))*np.ones(len(action_set))
 
 	def evaluate_payoff(self, player_strategy,
-						other_players_strategy_profile):
-		if self.beliefs:
-			return self.payoff_function(np.array(player_strategy), np.array(other_players_strategy_profile), self.type, self.beliefs)
-		else:
-			return self.payoff_function(np.array(player_strategy), np.array(other_players_strategy_profile))
+						other_players_strategy_profile, **kwargs):
 
+		return self.payoff_function(player_strategy, other_players_strategy_profile, **kwargs)
 
-	def best_response_set(self, profile):
+	def best_response_set(self, profile, **kwargs):
 		if self.analytic_best_response:
-			best_response_set = self.analytic_best_response(profile)
+			best_response_set = self.analytic_best_response(profile, **kwargs)
 		else:
-			possible_set = {strategy:self.evaluate_payoff(strategy, profile) for strategy in self.action_set}
+			possible_set = {strategy:self.evaluate_payoff(strategy, profile, **kwargs) for strategy in self.action_set}
 			best_payoff = max(possible_set.values())
 			best_response_set = [key for key in possible_set if possible_set[key]==best_payoff]
 		self.current_best_response = sorted(best_response_set)
 		return self
+
 
 class PlayerSet(dict):
 	"""
@@ -114,9 +112,14 @@ class PlayerSet(dict):
  		self.action_profiles = contingencies
  		return self
 
+ 	def mixed_strategy_profile(self):
+ 		self.msp = [self[player].mixed_strategy for player in self]
+ 		return self
+
  	def compute_profile_distribution(self):
 
- 		p = product(*[self[player].mixed_strategy for player in self])
+ 		self.mixed_strategy_profile()
+ 		p = product(*self.msp)
  		contingencies = []
  		for el in p:
  			proba = np.prod(list(el))
@@ -126,11 +129,14 @@ class PlayerSet(dict):
 
 	def expected_payoff(self, player_position):
 		p = self[player_position]
-		v = 0
-		for index, profile in enumerate(self.action_profiles):
-			v += self.profile_distribution[index]*p.evaluate_payoff(profile[p.position], np.delete(profile, p.position))
+		v = sum(np.array(self.profile_distribution)*\
+			np.fromiter((p.evaluate_payoff(profile[p.position], 
+								np.delete(profile, p.position)) for profile in np.array(self.action_profiles)), 
+						np.array(self.action_profiles).dtype, 
+						count=len(self.action_profiles)
+						)
+			)
 		return v
-
 
 
 if __name__ == '__main__':

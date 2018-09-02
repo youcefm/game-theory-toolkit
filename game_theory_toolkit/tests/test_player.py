@@ -1,5 +1,5 @@
 import numpy as np
-from tools.player import Player
+from game_theory_toolkit.player import *
 
 def matching_penny_utility(strategy, profile):
 	heads_count, tails_count = 0,0
@@ -35,7 +35,8 @@ class TestPlayerMethods(object):
 
 	def best_response_set_test_template(self, strategy_set, utility_fnc, profile_1, profile_2, analytic_best_response = None):
 		player = Player(1, strategy_set, utility_fnc, analytic_best_response)
-		actual = (sorted(player.best_response_set(profile_1)), sorted(player.best_response_set(profile_2)))
+		actual = (sorted(player.best_response_set(profile_1).current_best_response), 
+			sorted(player.best_response_set(profile_2).current_best_response))
 		return actual
 
 	def test_evaluate_payoff_binary_action(self):

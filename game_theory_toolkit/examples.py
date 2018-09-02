@@ -77,7 +77,7 @@ print 'Analytic Best response example: ', player.best_response_set([1,5,6,4])
 # Create player instances
 players = {}
 N = 3
-for n in range(1, N+1):
+for n in range(0, N):
 	players[n] = Player(n, np.arange(0,a*b,0.01), profit_fnc)
 
 # Analytic solution (symmetric), for comparison
